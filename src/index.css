@@ -1,1 +1,28 @@
 @import "tailwindcss";
+
+/* 通常時のリンクの見た目 */
+.markdown-link {
+  color: #2563eb;
+  text-decoration: underline;
+  cursor: text;
+}
+
+/* 非フォーカス時：Markdown記号を隠すテクニック */
+/* 実際には、ElementNodeの中で記号部分を <span> 等で囲むように 
+   createDOM を工夫すると、より正確にここだけ消せます。
+   今回は簡易的に「文字の一部を隠す」イメージです。
+*/
+
+/* フォーカスが当たっていない時、リンク部分以外（記号）を隠す例 */
+/* 注意：この実装には「記号部分を特定する」ためのHTML構造が別途必要です */
+/* 以下は「特定の属性を持つ要素を隠す」というアプローチの参考です */
+
+.markdown-link .syntax {
+  display: none; /* 通常は非表示 */
+}
+
+.markdown-link.is-focused .syntax {
+  display: inline; /* フォーカス時だけ表示 */
+  color: #999;
+  text-decoration: none;
+}

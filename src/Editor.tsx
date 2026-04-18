@@ -6,6 +6,8 @@ import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { LinkNode } from "@lexical/link";
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
+import { MarkdownLinkNode } from "./MarkdownLinkNode";
+import MarkdownLinkPlugin from "./MarkdownLinkPlugin";
 
 const theme = {
   paragraph: "mb-2",
@@ -20,7 +22,7 @@ const initialConfig = {
   namespace: "LexicalLinkTest",
   theme,
   onError,
-  nodes: [LinkNode],
+  nodes: [LinkNode, MarkdownLinkNode],
 };
 
 export default function Editor() {
@@ -41,6 +43,7 @@ export default function Editor() {
         <HistoryPlugin />
         <AutoFocusPlugin />
         <LinkPlugin />
+        <MarkdownLinkPlugin />
       </div>
     </LexicalComposer>
   );
