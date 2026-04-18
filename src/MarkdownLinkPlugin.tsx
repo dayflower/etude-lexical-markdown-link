@@ -19,7 +19,7 @@ export default function MarkdownLinkPlugin() {
   const [editor] = useLexicalComposerContext();
 
   useEffect(() => {
-    // 1a. TextNode → MarkdownLinkNode への変換
+    // 1a. TextNode → MarkdownLinkNode conversion
     const removeTextTransform = editor.registerNodeTransform(
       TextNode,
       (node) => {
@@ -28,13 +28,13 @@ export default function MarkdownLinkPlugin() {
           const textContent = node.getTextContent();
           const urlMatch = /^\[.*\]\(([^)]*)\)$/.exec(textContent);
           if (!urlMatch) {
-            // パターンが崩れたのでアンラップ:
-            // 新しいノードを作ると選択中ノードが消えてセレクションが失われるため、
-            // 内側のTextNodeをそのまま親の外に移してから親を削除する
+            // Pattern broken, so unwrap:
+            // Creating a new node would destroy the current selection,
+            // so move the inner TextNode out of the parent before removing it
             parent.insertAfter(node);
             parent.remove();
           } else {
-            // URLが変わっていれば更新
+            // Update URL if it changed
             const newUrl = urlMatch[1];
             if (parent.__url !== newUrl) {
               parent.getWritable().__url = newUrl;
@@ -52,7 +52,7 @@ export default function MarkdownLinkPlugin() {
         const startIndex = match.index;
         const endIndex = startIndex + fullMatch.length;
 
-        // splitText() でノードを分割するとカーソル位置が自動的に正しく保持される
+        // splitText() automatically preserves the cursor position when splitting nodes
         let linkTextNode: typeof node;
         if (startIndex === 0) {
           [linkTextNode] = node.splitText(endIndex);
@@ -66,8 +66,8 @@ export default function MarkdownLinkPlugin() {
       },
     );
 
-    // 1b. バリデーション (Node Transform)
-    // 内容が [text](url) の形式を外れたら、即座にTextNodeに分解する
+    // 1b. Validation (Node Transform)
+    // If the content no longer matches [text](url) format, immediately decompose into TextNodes
     const removeTransform = editor.registerNodeTransform(
       MarkdownLinkNode,
       (node) => {
@@ -84,18 +84,18 @@ export default function MarkdownLinkPlugin() {
       },
     );
 
-    // 2. フォーカス管理 (Selection Listener)
-    // カーソルがノード内にあるかどうかで、DOMにクラスを付け外しする
+    // 2. Focus management (Selection Listener)
+    // Toggle a CSS class on the DOM based on whether the cursor is inside the node
     const removeUpdateListener = editor.registerUpdateListener(
       ({ editorState }) => {
         editorState.read(() => {
           const selection = $getSelection();
 
-          // 全てのMarkdownLinkNodeに対して、選択されているかチェック
+          // Check each MarkdownLinkNode to see if it is selected
           const nodes = document.querySelectorAll(".markdown-link");
           nodes.forEach((dom) => {
-            // Lexicalの内部Keyを取得して判定（簡易的な実装例）
-            // 実際には node.getWritable() を通じてクラスを制御するのが理想的
+            // Using Lexical's internal key for detection (simplified approach)
+            // Ideally, class control would go through node.getWritable()
             dom.classList.remove("is-focused");
           });
 
@@ -112,7 +112,7 @@ export default function MarkdownLinkPlugin() {
       },
     );
 
-    // 3. カーソルがMarkdownLinkNode末尾にある状態でのテキスト入力をノード外に逃がす
+    // 3. Redirect text input to outside the node when the cursor is at the end of a MarkdownLinkNode
     const removeCommandListener = editor.registerCommand(
       CONTROLLED_TEXT_INSERTION_COMMAND,
       (payload) => {
@@ -132,7 +132,7 @@ export default function MarkdownLinkPlugin() {
         if (!$isMarkdownLinkNode(parent)) return false;
         if (anchor.offset !== anchorNode.getTextContentSize()) return false;
 
-        // MarkdownLinkNodeの直後にテキストを挿入する
+        // Insert text immediately after the MarkdownLinkNode
         const nextSibling = parent.getNextSibling();
         if ($isTextNode(nextSibling)) {
           const current = nextSibling.getTextContent();

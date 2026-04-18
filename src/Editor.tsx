@@ -35,7 +35,7 @@ export default function Editor() {
           }
           placeholder={
             <div className="pointer-events-none absolute top-4 left-4 text-gray-400">
-              テキストを入力してください...
+              Start typing...
             </div>
           }
           ErrorBoundary={LexicalErrorBoundary}

@@ -1,28 +1,28 @@
 @import "tailwindcss";
 
-/* 通常時のリンクの見た目 */
+/* Default link appearance */
 .markdown-link {
   color: #2563eb;
   text-decoration: underline;
   cursor: text;
 }
 
-/* 非フォーカス時：Markdown記号を隠すテクニック */
-/* 実際には、ElementNodeの中で記号部分を <span> 等で囲むように 
-   createDOM を工夫すると、より正確にここだけ消せます。
-   今回は簡易的に「文字の一部を隠す」イメージです。
+/* Technique to hide Markdown syntax characters when not focused */
+/* In practice, wrap the syntax parts in <span> elements inside createDOM
+   so they can be targeted more precisely.
+   This is a simplified conceptual approach.
 */
 
-/* フォーカスが当たっていない時、リンク部分以外（記号）を隠す例 */
-/* 注意：この実装には「記号部分を特定する」ためのHTML構造が別途必要です */
-/* 以下は「特定の属性を持つ要素を隠す」というアプローチの参考です */
+/* Hide non-link parts (syntax characters) when the node is not focused */
+/* Note: this requires an HTML structure that separates the syntax parts */
+/* The following is a reference for an approach that hides specific child elements */
 
 .markdown-link .syntax {
-  display: none; /* 通常は非表示 */
+  display: none; /* hidden by default */
 }
 
 .markdown-link.is-focused .syntax {
-  display: inline; /* フォーカス時だけ表示 */
+  display: inline; /* shown only when focused */
   color: #999;
   text-decoration: none;
 }

@@ -27,11 +27,11 @@ export class MarkdownLinkNode extends ElementNode {
     this.__url = url;
   }
 
-  // DOMの作成：常に特定のクラスを付与しておく
-  createDOM(config: EditorConfig): HTMLElement {
+  // Always attach a specific class when creating the DOM element
+  createDOM(_config: EditorConfig): HTMLElement {
     const dom = document.createElement("span");
     dom.className = "markdown-link";
-    // URLをデータ属性に持たせておくとCSSで活用できる
+    // Store the URL as a data attribute so CSS can reference it
     dom.setAttribute("data-url", this.__url);
     return dom;
   }
