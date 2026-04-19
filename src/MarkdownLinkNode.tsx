@@ -8,37 +8,42 @@ import {
 } from "lexical";
 
 export type SerializedMarkdownLinkNode = Spread<
-  { url: string },
+  { url: string; label: string },
   SerializedElementNode
 >;
 
 export class MarkdownLinkNode extends ElementNode {
   __url: string;
+  __label: string;
 
   static getType(): string {
     return "markdown-link";
   }
+
   static clone(node: MarkdownLinkNode): MarkdownLinkNode {
-    return new MarkdownLinkNode(node.__url, node.__key);
+    return new MarkdownLinkNode(node.__label, node.__url, node.__key);
   }
 
-  constructor(url: string, key?: NodeKey) {
+  constructor(label: string, url: string, key?: NodeKey) {
     super(key);
+    this.__label = label;
     this.__url = url;
   }
 
-  // Always attach a specific class when creating the DOM element
   createDOM(_config: EditorConfig): HTMLElement {
     const dom = document.createElement("span");
     dom.className = "markdown-link";
-    // Store the URL as a data attribute so CSS can reference it
     dom.setAttribute("data-url", this.__url);
+    dom.setAttribute("data-label", this.__label);
     return dom;
   }
 
   updateDOM(prevNode: MarkdownLinkNode, dom: HTMLElement): boolean {
     if (prevNode.__url !== this.__url) {
-      dom.setAttribute('data-url', this.__url);
+      dom.setAttribute("data-url", this.__url);
+    }
+    if (prevNode.__label !== this.__label) {
+      dom.setAttribute("data-label", this.__label);
     }
     return false;
   }
@@ -46,7 +51,7 @@ export class MarkdownLinkNode extends ElementNode {
   static importJSON(
     serializedNode: SerializedMarkdownLinkNode,
   ): MarkdownLinkNode {
-    return new MarkdownLinkNode(serializedNode.url);
+    return new MarkdownLinkNode(serializedNode.label, serializedNode.url);
   }
 
   exportJSON(): SerializedMarkdownLinkNode {
@@ -54,6 +59,7 @@ export class MarkdownLinkNode extends ElementNode {
       ...super.exportJSON(),
       type: "markdown-link",
       url: this.__url,
+      label: this.__label,
       version: 1,
     };
   }
@@ -61,13 +67,17 @@ export class MarkdownLinkNode extends ElementNode {
   canBeEmpty(): false {
     return false;
   }
+
   isInline(): true {
     return true;
   }
 }
 
-export function $createMarkdownLinkNode(url: string): MarkdownLinkNode {
-  return new MarkdownLinkNode(url);
+export function $createMarkdownLinkNode(
+  label: string,
+  url: string,
+): MarkdownLinkNode {
+  return new MarkdownLinkNode(label, url);
 }
 
 export function $isMarkdownLinkNode(
