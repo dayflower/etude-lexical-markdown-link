@@ -6,7 +6,12 @@ import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
-import { MarkdownLinkNode, MarkdownLinkUrlNode } from "./MarkdownLinkNode";
+import { useState } from "react";
+import {
+  MarkdownLinkLabelNode,
+  MarkdownLinkNode,
+  MarkdownLinkUrlNode,
+} from "./MarkdownLinkNode";
 import MarkdownLinkPlugin from "./MarkdownLinkPlugin";
 
 const theme = {
@@ -22,29 +27,44 @@ const initialConfig = {
   namespace: "LexicalLinkTest",
   theme,
   onError,
-  nodes: [LinkNode, MarkdownLinkNode, MarkdownLinkUrlNode],
+  nodes: [LinkNode, MarkdownLinkNode, MarkdownLinkUrlNode, MarkdownLinkLabelNode],
 };
 
 export default function Editor() {
+  const [showBrackets, setShowBrackets] = useState(false);
+
   return (
-    <LexicalComposer initialConfig={initialConfig}>
-      <div className="border border-gray-300 rounded-lg overflow-hidden">
-        <RichTextPlugin
-          contentEditable={
-            <ContentEditable className="min-h-40 p-4 outline-none focus:ring-2 focus:ring-blue-400" />
-          }
-          placeholder={
-            <div className="pointer-events-none absolute top-4 left-4 text-gray-400">
-              Start typing...
-            </div>
-          }
-          ErrorBoundary={LexicalErrorBoundary}
+    <div className="space-y-2">
+      <LexicalComposer initialConfig={initialConfig}>
+        <div
+          className={`border border-gray-300 rounded-lg overflow-hidden${showBrackets ? " show-brackets" : ""}`}
+        >
+          <RichTextPlugin
+            contentEditable={
+              <ContentEditable className="min-h-40 p-4 outline-none focus:ring-2 focus:ring-blue-400" />
+            }
+            placeholder={
+              <div className="pointer-events-none absolute top-4 left-4 text-gray-400">
+                Start typing...
+              </div>
+            }
+            ErrorBoundary={LexicalErrorBoundary}
+          />
+          <HistoryPlugin />
+          <AutoFocusPlugin />
+          <LinkPlugin />
+          <MarkdownLinkPlugin />
+        </div>
+      </LexicalComposer>
+      <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+        <input
+          type="checkbox"
+          checked={showBrackets}
+          onChange={(e) => setShowBrackets(e.target.checked)}
+          className="cursor-pointer"
         />
-        <HistoryPlugin />
-        <AutoFocusPlugin />
-        <LinkPlugin />
-        <MarkdownLinkPlugin />
-      </div>
-    </LexicalComposer>
+        Show brackets
+      </label>
+    </div>
   );
 }

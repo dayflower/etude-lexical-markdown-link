@@ -130,3 +130,50 @@ export function $isMarkdownLinkUrlNode(
 ): node is MarkdownLinkUrlNode {
   return node instanceof MarkdownLinkUrlNode;
 }
+
+export class MarkdownLinkLabelNode extends TextNode {
+  static getType(): string {
+    return "markdown-link-label";
+  }
+
+  static clone(node: MarkdownLinkLabelNode): MarkdownLinkLabelNode {
+    return new MarkdownLinkLabelNode(node.__text, node.__key);
+  }
+
+  createDOM(config: EditorConfig): HTMLElement {
+    const dom = super.createDOM(config);
+    dom.classList.add("markdown-link-label");
+    return dom;
+  }
+
+  static importJSON(
+    serializedNode: SerializedTextNode,
+  ): MarkdownLinkLabelNode {
+    const node = new MarkdownLinkLabelNode(serializedNode.text);
+    node.setFormat(serializedNode.format);
+    node.setDetail(serializedNode.detail);
+    node.setMode(serializedNode.mode);
+    node.setStyle(serializedNode.style);
+    return node;
+  }
+
+  exportJSON(): SerializedTextNode {
+    return {
+      ...super.exportJSON(),
+      type: "markdown-link-label",
+      version: 1,
+    };
+  }
+}
+
+export function $createMarkdownLinkLabelNode(
+  text: string,
+): MarkdownLinkLabelNode {
+  return new MarkdownLinkLabelNode(text);
+}
+
+export function $isMarkdownLinkLabelNode(
+  node: LexicalNode | null | undefined,
+): node is MarkdownLinkLabelNode {
+  return node instanceof MarkdownLinkLabelNode;
+}

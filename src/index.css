@@ -11,17 +11,32 @@
   text-decoration: underline;
 }
 
-/* When not focused, hide the raw markdown text and show the label via ::before */
+/* When not focused, hide all raw markdown children */
 .markdown-link:not(.is-focused) {
   font-size: 0;
   line-height: 0;
 }
 
-.markdown-link:not(.is-focused)::before {
+/* Show only the label node */
+.markdown-link:not(.is-focused) .markdown-link-label {
   color: #2563eb;
-  content: attr(data-label);
   cursor: pointer;
   font-size: 1rem;
   line-height: 1.5;
   text-decoration: underline;
+}
+
+/* Bracket mode: add [ ] with smaller, lighter styling */
+.show-brackets .markdown-link:not(.is-focused) .markdown-link-label::before {
+  content: "[";
+  font-size: 0.8em;
+  opacity: 0.5;
+  text-decoration: none;
+}
+
+.show-brackets .markdown-link:not(.is-focused) .markdown-link-label::after {
+  content: "]";
+  font-size: 0.8em;
+  opacity: 0.5;
+  text-decoration: none;
 }

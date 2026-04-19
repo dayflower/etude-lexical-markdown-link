@@ -11,10 +11,13 @@ import {
 } from "lexical";
 import { useEffect } from "react";
 import {
+  $createMarkdownLinkLabelNode,
   $createMarkdownLinkNode,
   $createMarkdownLinkUrlNode,
+  $isMarkdownLinkLabelNode,
   $isMarkdownLinkNode,
   $isMarkdownLinkUrlNode,
+  MarkdownLinkLabelNode,
   MarkdownLinkNode,
   MarkdownLinkUrlNode,
 } from "./MarkdownLinkNode";
@@ -26,7 +29,7 @@ function $unwrapMarkdownLinkNode(node: MarkdownLinkNode) {
   const children = node.getChildren();
   for (let i = children.length - 1; i >= 0; i--) {
     const child = children[i];
-    if ($isMarkdownLinkUrlNode(child)) {
+    if ($isMarkdownLinkUrlNode(child) || $isMarkdownLinkLabelNode(child)) {
       node.insertAfter($createTextNode(child.getTextContent()));
     } else {
       node.insertAfter(child);
@@ -81,7 +84,9 @@ export default function MarkdownLinkPlugin() {
 
         const linkNode = $createMarkdownLinkNode(label, url);
         linkNode.append(
-          $createTextNode(`[${label}](`),
+          $createTextNode("["),
+          $createMarkdownLinkLabelNode(label),
+          $createTextNode("]("),
           $createMarkdownLinkUrlNode(url),
           $createTextNode(")"),
         );
@@ -92,6 +97,19 @@ export default function MarkdownLinkPlugin() {
     // MarkdownLinkUrlNode validator: keep parent in sync or demote if orphaned
     const removeUrlTransform = editor.registerNodeTransform(
       MarkdownLinkUrlNode,
+      (node) => {
+        const parent = node.getParent();
+        if (!$isMarkdownLinkNode(parent)) {
+          node.replace($createTextNode(node.getTextContent()));
+          return;
+        }
+        $validateMarkdownLinkParent(parent);
+      },
+    );
+
+    // MarkdownLinkLabelNode validator: demote if orphaned
+    const removeLabelTransform = editor.registerNodeTransform(
+      MarkdownLinkLabelNode,
       (node) => {
         const parent = node.getParent();
         if (!$isMarkdownLinkNode(parent)) {
@@ -219,6 +237,7 @@ export default function MarkdownLinkPlugin() {
     return () => {
       removeTextTransform();
       removeUrlTransform();
+      removeLabelTransform();
       removeTransform();
       removeUpdateListener();
       removeCommandListener();
