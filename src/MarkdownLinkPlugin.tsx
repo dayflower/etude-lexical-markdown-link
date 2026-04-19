@@ -7,6 +7,7 @@ import {
   $isTextNode,
   COMMAND_PRIORITY_LOW,
   CONTROLLED_TEXT_INSERTION_COMMAND,
+  KEY_ESCAPE_COMMAND,
   TextNode,
 } from "lexical";
 import { useEffect } from "react";
@@ -196,6 +197,39 @@ export default function MarkdownLinkPlugin() {
       COMMAND_PRIORITY_LOW,
     );
 
+    // Escape key: exit source mode by moving cursor just after the link node
+    const removeEscapeListener = editor.registerCommand(
+      KEY_ESCAPE_COMMAND,
+      () => {
+        const selection = $getSelection();
+        if (!$isRangeSelection(selection) || !selection.isCollapsed())
+          return false;
+
+        const anchorNode = selection.anchor.getNode();
+        let linkNode: MarkdownLinkNode | null = null;
+        if ($isMarkdownLinkNode(anchorNode)) {
+          linkNode = anchorNode;
+        } else if ($isTextNode(anchorNode)) {
+          const parent = anchorNode.getParent();
+          if ($isMarkdownLinkNode(parent)) {
+            linkNode = parent;
+          }
+        }
+        if (!linkNode) return false;
+
+        const nextSibling = linkNode.getNextSibling();
+        if ($isTextNode(nextSibling)) {
+          nextSibling.select(0, 0);
+        } else {
+          const newNode = $createTextNode("");
+          linkNode.insertAfter(newNode);
+          newNode.select(0, 0);
+        }
+        return true;
+      },
+      COMMAND_PRIORITY_LOW,
+    );
+
     // Click handling:
     //   - focused + URL span → open the link in a new window
     //   - not focused → move cursor inside to enter source mode
@@ -241,6 +275,7 @@ export default function MarkdownLinkPlugin() {
       removeTransform();
       removeUpdateListener();
       removeCommandListener();
+      removeEscapeListener();
       removeRootListener();
     };
   }, [editor]);
