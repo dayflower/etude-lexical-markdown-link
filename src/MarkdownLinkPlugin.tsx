@@ -1,6 +1,7 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
   $createTextNode,
+  $getNearestNodeFromDOMNode,
   $getSelection,
   $isRangeSelection,
   $isTextNode,
@@ -146,11 +147,37 @@ export default function MarkdownLinkPlugin() {
       COMMAND_PRIORITY_LOW,
     );
 
+    // Click on a rendered (non-focused) MarkdownLinkNode → move cursor inside to enter source mode
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const linkEl = target.closest(".markdown-link") as HTMLElement | null;
+      if (!linkEl || linkEl.classList.contains("is-focused")) return;
+
+      e.preventDefault();
+      editor.update(() => {
+        const node = $getNearestNodeFromDOMNode(linkEl);
+        if ($isMarkdownLinkNode(node)) {
+          const firstChild = node.getFirstChild();
+          if ($isTextNode(firstChild)) {
+            firstChild.select(0, 0);
+          }
+        }
+      });
+    };
+
+    const removeRootListener = editor.registerRootListener(
+      (rootElement, prevRootElement) => {
+        prevRootElement?.removeEventListener("click", handleClick);
+        rootElement?.addEventListener("click", handleClick);
+      },
+    );
+
     return () => {
       removeTextTransform();
       removeTransform();
       removeUpdateListener();
       removeCommandListener();
+      removeRootListener();
     };
   }, [editor]);
 
