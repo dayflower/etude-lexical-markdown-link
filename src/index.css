@@ -3,6 +3,11 @@
 .markdown-link {
   color: #2563eb;
   cursor: text;
+}
+
+/* In source mode, only the URL portion is underlined and clickable */
+.markdown-link.is-focused .markdown-link-url {
+  cursor: pointer;
   text-decoration: underline;
 }
 

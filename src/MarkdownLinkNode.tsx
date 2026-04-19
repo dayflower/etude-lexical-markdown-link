@@ -4,7 +4,9 @@ import {
   type LexicalNode,
   type NodeKey,
   type SerializedElementNode,
+  type SerializedTextNode,
   type Spread,
+  TextNode,
 } from "lexical";
 
 export type SerializedMarkdownLinkNode = Spread<
@@ -84,4 +86,47 @@ export function $isMarkdownLinkNode(
   node: LexicalNode | null | undefined,
 ): node is MarkdownLinkNode {
   return node instanceof MarkdownLinkNode;
+}
+
+export class MarkdownLinkUrlNode extends TextNode {
+  static getType(): string {
+    return "markdown-link-url";
+  }
+
+  static clone(node: MarkdownLinkUrlNode): MarkdownLinkUrlNode {
+    return new MarkdownLinkUrlNode(node.__text, node.__key);
+  }
+
+  createDOM(config: EditorConfig): HTMLElement {
+    const dom = super.createDOM(config);
+    dom.classList.add("markdown-link-url");
+    return dom;
+  }
+
+  static importJSON(serializedNode: SerializedTextNode): MarkdownLinkUrlNode {
+    const node = new MarkdownLinkUrlNode(serializedNode.text);
+    node.setFormat(serializedNode.format);
+    node.setDetail(serializedNode.detail);
+    node.setMode(serializedNode.mode);
+    node.setStyle(serializedNode.style);
+    return node;
+  }
+
+  exportJSON(): SerializedTextNode {
+    return {
+      ...super.exportJSON(),
+      type: "markdown-link-url",
+      version: 1,
+    };
+  }
+}
+
+export function $createMarkdownLinkUrlNode(text: string): MarkdownLinkUrlNode {
+  return new MarkdownLinkUrlNode(text);
+}
+
+export function $isMarkdownLinkUrlNode(
+  node: LexicalNode | null | undefined,
+): node is MarkdownLinkUrlNode {
+  return node instanceof MarkdownLinkUrlNode;
 }

@@ -12,12 +12,43 @@ import {
 import { useEffect } from "react";
 import {
   $createMarkdownLinkNode,
+  $createMarkdownLinkUrlNode,
   $isMarkdownLinkNode,
+  $isMarkdownLinkUrlNode,
   MarkdownLinkNode,
+  MarkdownLinkUrlNode,
 } from "./MarkdownLinkNode";
 
 const FULL_MATCH_REGEX = /^\[([^\]]*)\]\(([^)]*)\)$/;
 const MATCH_REGEX = /\[([^\]]*)\]\(([^)]+)\)/;
+
+function $unwrapMarkdownLinkNode(node: MarkdownLinkNode) {
+  const children = node.getChildren();
+  for (let i = children.length - 1; i >= 0; i--) {
+    const child = children[i];
+    if ($isMarkdownLinkUrlNode(child)) {
+      node.insertAfter($createTextNode(child.getTextContent()));
+    } else {
+      node.insertAfter(child);
+    }
+  }
+  node.remove();
+}
+
+function $validateMarkdownLinkParent(parent: MarkdownLinkNode) {
+  const textContent = parent.getTextContent();
+  const urlMatch = FULL_MATCH_REGEX.exec(textContent);
+  if (!urlMatch) {
+    $unwrapMarkdownLinkNode(parent);
+    return;
+  }
+  const [, newLabel, newUrl] = urlMatch;
+  if (parent.__url !== newUrl || parent.__label !== newLabel) {
+    const writable = parent.getWritable();
+    writable.__url = newUrl;
+    writable.__label = newLabel;
+  }
+}
 
 export default function MarkdownLinkPlugin() {
   const [editor] = useLexicalComposerContext();
@@ -29,20 +60,7 @@ export default function MarkdownLinkPlugin() {
       (node) => {
         const parent = node.getParent();
         if ($isMarkdownLinkNode(parent)) {
-          const textContent = node.getTextContent();
-          const urlMatch = FULL_MATCH_REGEX.exec(textContent);
-          if (!urlMatch) {
-            // Pattern broken: unwrap the TextNode so the cursor position is preserved
-            parent.insertAfter(node);
-            parent.remove();
-          } else {
-            const [, newLabel, newUrl] = urlMatch;
-            if (parent.__url !== newUrl || parent.__label !== newLabel) {
-              const writable = parent.getWritable();
-              writable.__url = newUrl;
-              writable.__label = newLabel;
-            }
-          }
+          $validateMarkdownLinkParent(parent);
           return;
         }
 
@@ -62,8 +80,25 @@ export default function MarkdownLinkPlugin() {
         }
 
         const linkNode = $createMarkdownLinkNode(label, url);
-        linkNode.append($createTextNode(fullMatch));
+        linkNode.append(
+          $createTextNode(`[${label}](`),
+          $createMarkdownLinkUrlNode(url),
+          $createTextNode(")"),
+        );
         linkTextNode.replace(linkNode);
+      },
+    );
+
+    // MarkdownLinkUrlNode validator: keep parent in sync or demote if orphaned
+    const removeUrlTransform = editor.registerNodeTransform(
+      MarkdownLinkUrlNode,
+      (node) => {
+        const parent = node.getParent();
+        if (!$isMarkdownLinkNode(parent)) {
+          node.replace($createTextNode(node.getTextContent()));
+          return;
+        }
+        $validateMarkdownLinkParent(parent);
       },
     );
 
@@ -72,11 +107,7 @@ export default function MarkdownLinkPlugin() {
       MarkdownLinkNode,
       (node) => {
         if (!FULL_MATCH_REGEX.test(node.getTextContent())) {
-          const children = node.getChildren();
-          for (let i = children.length - 1; i >= 0; i--) {
-            node.insertAfter(children[i]);
-          }
-          node.remove();
+          $unwrapMarkdownLinkNode(node);
         }
       },
     );
@@ -147,11 +178,24 @@ export default function MarkdownLinkPlugin() {
       COMMAND_PRIORITY_LOW,
     );
 
-    // Click on a rendered (non-focused) MarkdownLinkNode → move cursor inside to enter source mode
+    // Click handling:
+    //   - focused + URL span → open the link in a new window
+    //   - not focused → move cursor inside to enter source mode
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const linkEl = target.closest(".markdown-link") as HTMLElement | null;
-      if (!linkEl || linkEl.classList.contains("is-focused")) return;
+      if (!linkEl) return;
+
+      if (linkEl.classList.contains("is-focused")) {
+        if (target.closest(".markdown-link-url")) {
+          const url = linkEl.getAttribute("data-url");
+          if (url) {
+            e.preventDefault();
+            window.open(url, "_blank", "noopener,noreferrer");
+          }
+        }
+        return;
+      }
 
       e.preventDefault();
       editor.update(() => {
@@ -174,6 +218,7 @@ export default function MarkdownLinkPlugin() {
 
     return () => {
       removeTextTransform();
+      removeUrlTransform();
       removeTransform();
       removeUpdateListener();
       removeCommandListener();

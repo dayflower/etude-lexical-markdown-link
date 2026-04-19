@@ -1,12 +1,12 @@
+import { LinkNode } from "@lexical/link";
 import { AutoFocusPlugin } from "@lexical/react/LexicalAutoFocusPlugin";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
-import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
-import { LinkNode } from "@lexical/link";
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
-import { MarkdownLinkNode } from "./MarkdownLinkNode";
+import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
+import { MarkdownLinkNode, MarkdownLinkUrlNode } from "./MarkdownLinkNode";
 import MarkdownLinkPlugin from "./MarkdownLinkPlugin";
 
 const theme = {
@@ -22,7 +22,7 @@ const initialConfig = {
   namespace: "LexicalLinkTest",
   theme,
   onError,
-  nodes: [LinkNode, MarkdownLinkNode],
+  nodes: [LinkNode, MarkdownLinkNode, MarkdownLinkUrlNode],
 };
 
 export default function Editor() {
