@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite --no-clear-screen",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check": "biome check",
+    "fix": "biome check --write"
   },
   "dependencies": {
     "@lexical/history": "^0.43.0",
