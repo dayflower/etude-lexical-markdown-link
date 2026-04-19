@@ -5,6 +5,7 @@ import {
   $getSelection,
   $isRangeSelection,
   $isTextNode,
+  COMMAND_PRIORITY_HIGH,
   COMMAND_PRIORITY_LOW,
   CONTROLLED_TEXT_INSERTION_COMMAND,
   KEY_ESCAPE_COMMAND,
@@ -200,7 +201,7 @@ export default function MarkdownLinkPlugin() {
     // Escape key: exit source mode by moving cursor just after the link node
     const removeEscapeListener = editor.registerCommand(
       KEY_ESCAPE_COMMAND,
-      () => {
+      (event) => {
         const selection = $getSelection();
         if (!$isRangeSelection(selection) || !selection.isCollapsed())
           return false;
@@ -217,17 +218,20 @@ export default function MarkdownLinkPlugin() {
         }
         if (!linkNode) return false;
 
+        event?.preventDefault();
+
         const nextSibling = linkNode.getNextSibling();
         if ($isTextNode(nextSibling)) {
           nextSibling.select(0, 0);
         } else {
-          const newNode = $createTextNode("");
-          linkNode.insertAfter(newNode);
-          newNode.select(0, 0);
+          const parent = linkNode.getParentOrThrow();
+          const index = linkNode.getIndexWithinParent();
+          parent.select(index + 1, index + 1);
         }
+
         return true;
       },
-      COMMAND_PRIORITY_LOW,
+      COMMAND_PRIORITY_HIGH,
     );
 
     // Click handling:
