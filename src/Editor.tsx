@@ -27,7 +27,12 @@ const initialConfig = {
   namespace: "LexicalLinkTest",
   theme,
   onError,
-  nodes: [LinkNode, MarkdownLinkNode, MarkdownLinkUrlNode, MarkdownLinkLabelNode],
+  nodes: [
+    LinkNode,
+    MarkdownLinkNode,
+    MarkdownLinkUrlNode,
+    MarkdownLinkLabelNode,
+  ],
 };
 
 export default function Editor() {

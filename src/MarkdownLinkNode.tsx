@@ -146,9 +146,7 @@ export class MarkdownLinkLabelNode extends TextNode {
     return dom;
   }
 
-  static importJSON(
-    serializedNode: SerializedTextNode,
-  ): MarkdownLinkLabelNode {
+  static importJSON(serializedNode: SerializedTextNode): MarkdownLinkLabelNode {
     const node = new MarkdownLinkLabelNode(serializedNode.text);
     node.setFormat(serializedNode.format);
     node.setDetail(serializedNode.detail);
