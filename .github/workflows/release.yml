@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run check
+
+      - run: npm run build
+
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: release/docs
+          title: "Update docs build"
+          body: Automated docs update from commit ${{ github.sha }}.
+          commit-message: Update docs build
+          add-paths: docs/
