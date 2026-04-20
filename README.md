@@ -2,6 +2,8 @@
 
 A personal study project implementing Markdown-style link (`[label](url)`) editing logic in [Lexical](https://lexical.dev/).
 
+![Screenshot](notes/screenshot.png)
+
 ## About
 
 This is an etude — a hands-on exercise for learning, not a production tool. Building anything non-trivial with Lexical turns out to be surprisingly involved, so this project exists as a record of that exploration.
