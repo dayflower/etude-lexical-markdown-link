@@ -10,6 +10,7 @@ import {
   CONTROLLED_TEXT_INSERTION_COMMAND,
   KEY_ESCAPE_COMMAND,
   type LexicalEditor,
+  type LexicalNode,
   TextNode,
 } from "lexical";
 import { useEffect } from "react";
@@ -66,6 +67,51 @@ function createChildNodeValidator<T extends TextNode>(): (node: T) => void {
     }
     $validateMarkdownLinkParent(parent);
   };
+}
+
+function $findNearestMarkdownLinkNode(
+  node: LexicalNode | null,
+): MarkdownLinkNode | null {
+  if ($isMarkdownLinkNode(node)) return node;
+  if ($isTextNode(node)) {
+    const parent = node.getParent();
+    if ($isMarkdownLinkNode(parent)) return parent;
+  }
+  return null;
+}
+
+function isLinkFocused(linkEl: HTMLElement): boolean {
+  return linkEl.classList.contains(CSS_CLASSES.FOCUSED);
+}
+
+function isUrlClickTarget(target: HTMLElement): boolean {
+  return !!target.closest(`.${CSS_CLASSES.URL}`);
+}
+
+function handleFocusedLinkClick(linkEl: HTMLElement, e: MouseEvent): void {
+  if (!isUrlClickTarget(e.target as HTMLElement)) return;
+  const url = linkEl.getAttribute("data-url");
+  if (url) {
+    e.preventDefault();
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+}
+
+function handleUnfocusedLinkClick(
+  linkEl: HTMLElement,
+  editor: LexicalEditor,
+  e: MouseEvent,
+): void {
+  e.preventDefault();
+  editor.update(() => {
+    const node = $getNearestNodeFromDOMNode(linkEl);
+    if ($isMarkdownLinkNode(node)) {
+      const firstChild = node.getFirstChild();
+      if ($isTextNode(firstChild)) {
+        firstChild.select(0, 0);
+      }
+    }
+  });
 }
 
 function useNodeTransforms(editor: LexicalEditor): void {
@@ -223,15 +269,7 @@ function useEscapeKeyBehavior(editor: LexicalEditor): void {
           return false;
 
         const anchorNode = selection.anchor.getNode();
-        let linkNode: MarkdownLinkNode | null = null;
-        if ($isMarkdownLinkNode(anchorNode)) {
-          linkNode = anchorNode;
-        } else if ($isTextNode(anchorNode)) {
-          const parent = anchorNode.getParent();
-          if ($isMarkdownLinkNode(parent)) {
-            linkNode = parent;
-          }
-        }
+        const linkNode = $findNearestMarkdownLinkNode(anchorNode);
         if (!linkNode) return false;
 
         event?.preventDefault();
@@ -263,27 +301,12 @@ function useClickHandling(editor: LexicalEditor): void {
       const linkEl = target.closest(`.${CSS_CLASSES.LINK}`) as HTMLElement | null;
       if (!linkEl) return;
 
-      if (linkEl.classList.contains(CSS_CLASSES.FOCUSED)) {
-        if (target.closest(`.${CSS_CLASSES.URL}`)) {
-          const url = linkEl.getAttribute("data-url");
-          if (url) {
-            e.preventDefault();
-            window.open(url, "_blank", "noopener,noreferrer");
-          }
-        }
+      if (isLinkFocused(linkEl)) {
+        handleFocusedLinkClick(linkEl, e);
         return;
       }
 
-      e.preventDefault();
-      editor.update(() => {
-        const node = $getNearestNodeFromDOMNode(linkEl);
-        if ($isMarkdownLinkNode(node)) {
-          const firstChild = node.getFirstChild();
-          if ($isTextNode(firstChild)) {
-            firstChild.select(0, 0);
-          }
-        }
-      });
+      handleUnfocusedLinkClick(linkEl, editor, e);
     };
 
     const removeRootListener = editor.registerRootListener(
