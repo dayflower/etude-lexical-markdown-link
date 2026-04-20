@@ -14,6 +14,7 @@ import {
   TextNode,
 } from "lexical";
 import { useEffect } from "react";
+import { CSS_CLASSES } from "./constants";
 import {
   $createMarkdownLinkLabelNode,
   $createMarkdownLinkNode,
@@ -25,7 +26,6 @@ import {
   MarkdownLinkNode,
   MarkdownLinkUrlNode,
 } from "./MarkdownLinkNode";
-import { CSS_CLASSES } from "./constants";
 
 const FULL_MATCH_REGEX = /^\[([^\]]*)\]\(([^)]*)\)$/;
 const MATCH_REGEX = /\[([^\]]*)\]\(([^)]+)\)/;
@@ -175,7 +175,10 @@ function useNodeTransforms(editor: LexicalEditor): void {
       }),
     );
 
-    return () => cleanups.forEach((fn) => { fn(); });
+    return () =>
+      cleanups.forEach((fn) => {
+        fn();
+      });
   }, [editor]);
 }
 
@@ -297,7 +300,9 @@ function useClickHandling(editor: LexicalEditor): void {
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const linkEl = target.closest(`.${CSS_CLASSES.LINK}`) as HTMLElement | null;
+      const linkEl = target.closest(
+        `.${CSS_CLASSES.LINK}`,
+      ) as HTMLElement | null;
       if (!linkEl) return;
 
       if (isLinkFocused(linkEl)) {
