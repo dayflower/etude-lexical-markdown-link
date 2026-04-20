@@ -55,6 +55,17 @@ function $validateMarkdownLinkParent(parent: MarkdownLinkNode) {
   }
 }
 
+function createChildNodeValidator<T extends TextNode>(): (node: T) => void {
+  return (node: T) => {
+    const parent = node.getParent();
+    if (!$isMarkdownLinkNode(parent)) {
+      node.replace($createTextNode(node.getTextContent()));
+      return;
+    }
+    $validateMarkdownLinkParent(parent);
+  };
+}
+
 export default function MarkdownLinkPlugin() {
   const [editor] = useLexicalComposerContext();
 
@@ -99,27 +110,13 @@ export default function MarkdownLinkPlugin() {
     // MarkdownLinkUrlNode validator: keep parent in sync or demote if orphaned
     const removeUrlTransform = editor.registerNodeTransform(
       MarkdownLinkUrlNode,
-      (node) => {
-        const parent = node.getParent();
-        if (!$isMarkdownLinkNode(parent)) {
-          node.replace($createTextNode(node.getTextContent()));
-          return;
-        }
-        $validateMarkdownLinkParent(parent);
-      },
+      createChildNodeValidator<MarkdownLinkUrlNode>(),
     );
 
     // MarkdownLinkLabelNode validator: demote if orphaned
     const removeLabelTransform = editor.registerNodeTransform(
       MarkdownLinkLabelNode,
-      (node) => {
-        const parent = node.getParent();
-        if (!$isMarkdownLinkNode(parent)) {
-          node.replace($createTextNode(node.getTextContent()));
-          return;
-        }
-        $validateMarkdownLinkParent(parent);
-      },
+      createChildNodeValidator<MarkdownLinkLabelNode>(),
     );
 
     // MarkdownLinkNode validator: unwrap if the content is no longer a valid markdown link
