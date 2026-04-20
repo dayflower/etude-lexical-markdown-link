@@ -9,6 +9,7 @@ import {
   COMMAND_PRIORITY_LOW,
   CONTROLLED_TEXT_INSERTION_COMMAND,
   KEY_ESCAPE_COMMAND,
+  type LexicalEditor,
   TextNode,
 } from "lexical";
 import { useEffect } from "react";
@@ -67,11 +68,8 @@ function createChildNodeValidator<T extends TextNode>(): (node: T) => void {
   };
 }
 
-export default function MarkdownLinkPlugin() {
-  const [editor] = useLexicalComposerContext();
-
+function useNodeTransforms(editor: LexicalEditor): void {
   useEffect(() => {
-    // TextNode → MarkdownLinkNode conversion and in-place sync
     const removeTextTransform = editor.registerNodeTransform(
       TextNode,
       (node) => {
@@ -108,19 +106,16 @@ export default function MarkdownLinkPlugin() {
       },
     );
 
-    // MarkdownLinkUrlNode validator: keep parent in sync or demote if orphaned
     const removeUrlTransform = editor.registerNodeTransform(
       MarkdownLinkUrlNode,
       createChildNodeValidator<MarkdownLinkUrlNode>(),
     );
 
-    // MarkdownLinkLabelNode validator: demote if orphaned
     const removeLabelTransform = editor.registerNodeTransform(
       MarkdownLinkLabelNode,
       createChildNodeValidator<MarkdownLinkLabelNode>(),
     );
 
-    // MarkdownLinkNode validator: unwrap if the content is no longer a valid markdown link
     const removeTransform = editor.registerNodeTransform(
       MarkdownLinkNode,
       (node) => {
@@ -130,7 +125,17 @@ export default function MarkdownLinkPlugin() {
       },
     );
 
-    // Toggle .is-focused on MarkdownLinkNode DOM elements based on the selection
+    return () => {
+      removeTextTransform();
+      removeUrlTransform();
+      removeLabelTransform();
+      removeTransform();
+    };
+  }, [editor]);
+}
+
+function useSelectionFocusTracking(editor: LexicalEditor): void {
+  useEffect(() => {
     const removeUpdateListener = editor.registerUpdateListener(
       ({ editorState }) => {
         editorState.read(() => {
@@ -160,8 +165,14 @@ export default function MarkdownLinkPlugin() {
       },
     );
 
-    // When the cursor sits at the very end of a MarkdownLinkNode (just after `)`),
-    // redirect text insertion to the outside so the closing paren is preserved.
+    return () => {
+      removeUpdateListener();
+    };
+  }, [editor]);
+}
+
+function useTextInsertionBehavior(editor: LexicalEditor): void {
+  useEffect(() => {
     const removeCommandListener = editor.registerCommand(
       CONTROLLED_TEXT_INSERTION_COMMAND,
       (payload) => {
@@ -196,7 +207,14 @@ export default function MarkdownLinkPlugin() {
       COMMAND_PRIORITY_LOW,
     );
 
-    // Escape key: exit source mode by moving cursor just after the link node
+    return () => {
+      removeCommandListener();
+    };
+  }, [editor]);
+}
+
+function useEscapeKeyBehavior(editor: LexicalEditor): void {
+  useEffect(() => {
     const removeEscapeListener = editor.registerCommand(
       KEY_ESCAPE_COMMAND,
       (event) => {
@@ -232,9 +250,14 @@ export default function MarkdownLinkPlugin() {
       COMMAND_PRIORITY_HIGH,
     );
 
-    // Click handling:
-    //   - focused + URL span → open the link in a new window
-    //   - not focused → move cursor inside to enter source mode
+    return () => {
+      removeEscapeListener();
+    };
+  }, [editor]);
+}
+
+function useClickHandling(editor: LexicalEditor): void {
+  useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const linkEl = target.closest(`.${CSS_CLASSES.LINK}`) as HTMLElement | null;
@@ -271,16 +294,17 @@ export default function MarkdownLinkPlugin() {
     );
 
     return () => {
-      removeTextTransform();
-      removeUrlTransform();
-      removeLabelTransform();
-      removeTransform();
-      removeUpdateListener();
-      removeCommandListener();
-      removeEscapeListener();
       removeRootListener();
     };
   }, [editor]);
+}
 
+export default function MarkdownLinkPlugin() {
+  const [editor] = useLexicalComposerContext();
+  useNodeTransforms(editor);
+  useSelectionFocusTracking(editor);
+  useTextInsertionBehavior(editor);
+  useEscapeKeyBehavior(editor);
+  useClickHandling(editor);
   return null;
 }
