@@ -23,6 +23,7 @@ import {
   MarkdownLinkNode,
   MarkdownLinkUrlNode,
 } from "./MarkdownLinkNode";
+import { CSS_CLASSES } from "./constants";
 
 const FULL_MATCH_REGEX = /^\[([^\]]*)\]\(([^)]*)\)$/;
 const MATCH_REGEX = /\[([^\]]*)\]\(([^)]+)\)/;
@@ -133,9 +134,9 @@ export default function MarkdownLinkPlugin() {
     const removeUpdateListener = editor.registerUpdateListener(
       ({ editorState }) => {
         editorState.read(() => {
-          const doms = document.querySelectorAll(".markdown-link");
+          const doms = document.querySelectorAll(`.${CSS_CLASSES.LINK}`);
           doms.forEach((dom) => {
-            dom.classList.remove("is-focused");
+            dom.classList.remove(CSS_CLASSES.FOCUSED);
           });
 
           const selection = $getSelection();
@@ -153,7 +154,7 @@ export default function MarkdownLinkPlugin() {
             }
           }
           focusedKeys.forEach((key) => {
-            editor.getElementByKey(key)?.classList.add("is-focused");
+            editor.getElementByKey(key)?.classList.add(CSS_CLASSES.FOCUSED);
           });
         });
       },
@@ -236,11 +237,11 @@ export default function MarkdownLinkPlugin() {
     //   - not focused → move cursor inside to enter source mode
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const linkEl = target.closest(".markdown-link") as HTMLElement | null;
+      const linkEl = target.closest(`.${CSS_CLASSES.LINK}`) as HTMLElement | null;
       if (!linkEl) return;
 
-      if (linkEl.classList.contains("is-focused")) {
-        if (target.closest(".markdown-link-url")) {
+      if (linkEl.classList.contains(CSS_CLASSES.FOCUSED)) {
+        if (target.closest(`.${CSS_CLASSES.URL}`)) {
           const url = linkEl.getAttribute("data-url");
           if (url) {
             e.preventDefault();

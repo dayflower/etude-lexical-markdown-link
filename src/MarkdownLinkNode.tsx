@@ -8,6 +8,7 @@ import {
   type Spread,
   TextNode,
 } from "lexical";
+import { CSS_CLASSES } from "./constants";
 
 export type SerializedMarkdownLinkNode = Spread<
   { url: string; label: string },
@@ -19,7 +20,7 @@ export class MarkdownLinkNode extends ElementNode {
   __label: string;
 
   static getType(): string {
-    return "markdown-link";
+    return CSS_CLASSES.LINK;
   }
 
   static clone(node: MarkdownLinkNode): MarkdownLinkNode {
@@ -34,7 +35,7 @@ export class MarkdownLinkNode extends ElementNode {
 
   createDOM(_config: EditorConfig): HTMLElement {
     const dom = document.createElement("span");
-    dom.className = "markdown-link";
+    dom.className = CSS_CLASSES.LINK;
     dom.setAttribute("data-url", this.__url);
     dom.setAttribute("data-label", this.__label);
     return dom;
@@ -59,7 +60,7 @@ export class MarkdownLinkNode extends ElementNode {
   exportJSON(): SerializedMarkdownLinkNode {
     return {
       ...super.exportJSON(),
-      type: "markdown-link",
+      type: CSS_CLASSES.LINK,
       url: this.__url,
       label: this.__label,
       version: 1,
@@ -127,8 +128,8 @@ function createMarkdownLinkTextNodeClass(typeString: string, cssClass: string) {
 }
 
 export const MarkdownLinkUrlNode = createMarkdownLinkTextNodeClass(
-  "markdown-link-url",
-  "markdown-link-url",
+  CSS_CLASSES.URL,
+  CSS_CLASSES.URL,
 );
 export type MarkdownLinkUrlNode = InstanceType<typeof MarkdownLinkUrlNode>;
 
@@ -143,8 +144,8 @@ export function $isMarkdownLinkUrlNode(
 }
 
 export const MarkdownLinkLabelNode = createMarkdownLinkTextNodeClass(
-  "markdown-link-label",
-  "markdown-link-label",
+  CSS_CLASSES.LABEL,
+  CSS_CLASSES.LABEL,
 );
 export type MarkdownLinkLabelNode = InstanceType<typeof MarkdownLinkLabelNode>;
 
