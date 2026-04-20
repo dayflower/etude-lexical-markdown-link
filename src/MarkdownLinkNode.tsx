@@ -88,38 +88,49 @@ export function $isMarkdownLinkNode(
   return node instanceof MarkdownLinkNode;
 }
 
-export class MarkdownLinkUrlNode extends TextNode {
-  static getType(): string {
-    return "markdown-link-url";
-  }
+function createMarkdownLinkTextNodeClass(typeString: string, cssClass: string) {
+  class MarkdownLinkTextNode extends TextNode {
+    static getType(): string {
+      return typeString;
+    }
 
-  static clone(node: MarkdownLinkUrlNode): MarkdownLinkUrlNode {
-    return new MarkdownLinkUrlNode(node.__text, node.__key);
-  }
+    static clone(node: MarkdownLinkTextNode): MarkdownLinkTextNode {
+      return new MarkdownLinkTextNode(node.__text, node.__key);
+    }
 
-  createDOM(config: EditorConfig): HTMLElement {
-    const dom = super.createDOM(config);
-    dom.classList.add("markdown-link-url");
-    return dom;
-  }
+    createDOM(config: EditorConfig): HTMLElement {
+      const dom = super.createDOM(config);
+      dom.classList.add(cssClass);
+      return dom;
+    }
 
-  static importJSON(serializedNode: SerializedTextNode): MarkdownLinkUrlNode {
-    const node = new MarkdownLinkUrlNode(serializedNode.text);
-    node.setFormat(serializedNode.format);
-    node.setDetail(serializedNode.detail);
-    node.setMode(serializedNode.mode);
-    node.setStyle(serializedNode.style);
-    return node;
-  }
+    static importJSON(
+      serializedNode: SerializedTextNode,
+    ): MarkdownLinkTextNode {
+      const node = new MarkdownLinkTextNode(serializedNode.text);
+      node.setFormat(serializedNode.format);
+      node.setDetail(serializedNode.detail);
+      node.setMode(serializedNode.mode);
+      node.setStyle(serializedNode.style);
+      return node;
+    }
 
-  exportJSON(): SerializedTextNode {
-    return {
-      ...super.exportJSON(),
-      type: "markdown-link-url",
-      version: 1,
-    };
+    exportJSON(): SerializedTextNode {
+      return {
+        ...super.exportJSON(),
+        type: typeString,
+        version: 1,
+      };
+    }
   }
+  return MarkdownLinkTextNode;
 }
+
+export const MarkdownLinkUrlNode = createMarkdownLinkTextNodeClass(
+  "markdown-link-url",
+  "markdown-link-url",
+);
+export type MarkdownLinkUrlNode = InstanceType<typeof MarkdownLinkUrlNode>;
 
 export function $createMarkdownLinkUrlNode(text: string): MarkdownLinkUrlNode {
   return new MarkdownLinkUrlNode(text);
@@ -131,38 +142,11 @@ export function $isMarkdownLinkUrlNode(
   return node instanceof MarkdownLinkUrlNode;
 }
 
-export class MarkdownLinkLabelNode extends TextNode {
-  static getType(): string {
-    return "markdown-link-label";
-  }
-
-  static clone(node: MarkdownLinkLabelNode): MarkdownLinkLabelNode {
-    return new MarkdownLinkLabelNode(node.__text, node.__key);
-  }
-
-  createDOM(config: EditorConfig): HTMLElement {
-    const dom = super.createDOM(config);
-    dom.classList.add("markdown-link-label");
-    return dom;
-  }
-
-  static importJSON(serializedNode: SerializedTextNode): MarkdownLinkLabelNode {
-    const node = new MarkdownLinkLabelNode(serializedNode.text);
-    node.setFormat(serializedNode.format);
-    node.setDetail(serializedNode.detail);
-    node.setMode(serializedNode.mode);
-    node.setStyle(serializedNode.style);
-    return node;
-  }
-
-  exportJSON(): SerializedTextNode {
-    return {
-      ...super.exportJSON(),
-      type: "markdown-link-label",
-      version: 1,
-    };
-  }
-}
+export const MarkdownLinkLabelNode = createMarkdownLinkTextNodeClass(
+  "markdown-link-label",
+  "markdown-link-label",
+);
+export type MarkdownLinkLabelNode = InstanceType<typeof MarkdownLinkLabelNode>;
 
 export function $createMarkdownLinkLabelNode(
   text: string,
