@@ -21,11 +21,11 @@ export default function Editor() {
           <p className="text-sm text-gray-500 mb-1">Rich editor</p>
           <LexicalComposer initialConfig={initialConfig}>
             <div
-              className={`relative border border-gray-300 rounded-lg overflow-hidden${showBrackets ? " show-brackets" : ""}`}
+              className={`relative border border-gray-300 rounded-lg overflow-hidden ring-blue-400 focus-within:ring-2${showBrackets ? " show-brackets" : ""}`}
             >
               <RichTextPlugin
                 contentEditable={
-                  <ContentEditable className="min-h-40 p-4 outline-none focus:ring-2 focus:ring-blue-400" />
+                  <ContentEditable className="min-h-40 p-4 outline-none" />
                 }
                 placeholder={
                   <div className="pointer-events-none absolute top-4 left-4 text-gray-400">
