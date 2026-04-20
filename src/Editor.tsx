@@ -1,4 +1,3 @@
-import { LinkNode } from "@lexical/link";
 import { AutoFocusPlugin } from "@lexical/react/LexicalAutoFocusPlugin";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
@@ -7,33 +6,8 @@ import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { useState } from "react";
-import {
-  MarkdownLinkLabelNode,
-  MarkdownLinkNode,
-  MarkdownLinkUrlNode,
-} from "./MarkdownLinkNode";
+import { initialConfig } from "./editorConfig";
 import MarkdownLinkPlugin from "./MarkdownLinkPlugin";
-
-const theme = {
-  paragraph: "mb-2",
-  link: "text-blue-600 underline hover:text-blue-800 cursor-pointer",
-};
-
-function onError(error: Error) {
-  console.error(error);
-}
-
-const initialConfig = {
-  namespace: "LexicalLinkTest",
-  theme,
-  onError,
-  nodes: [
-    LinkNode,
-    MarkdownLinkNode,
-    MarkdownLinkUrlNode,
-    MarkdownLinkLabelNode,
-  ],
-};
 
 export default function Editor() {
   const [showBrackets, setShowBrackets] = useState(false);

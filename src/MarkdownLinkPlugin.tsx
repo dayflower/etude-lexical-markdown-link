@@ -116,9 +116,10 @@ function handleUnfocusedLinkClick(
 
 function useNodeTransforms(editor: LexicalEditor): void {
   useEffect(() => {
-    const removeTextTransform = editor.registerNodeTransform(
-      TextNode,
-      (node) => {
+    const cleanups: Array<() => void> = [];
+
+    cleanups.push(
+      editor.registerNodeTransform(TextNode, (node) => {
         const parent = node.getParent();
         if ($isMarkdownLinkNode(parent)) {
           $validateMarkdownLinkParent(parent);
@@ -149,34 +150,32 @@ function useNodeTransforms(editor: LexicalEditor): void {
           $createTextNode(")"),
         );
         linkTextNode.replace(linkNode);
-      },
+      }),
     );
 
-    const removeUrlTransform = editor.registerNodeTransform(
-      MarkdownLinkUrlNode,
-      createChildNodeValidator<MarkdownLinkUrlNode>(),
+    cleanups.push(
+      editor.registerNodeTransform(
+        MarkdownLinkUrlNode,
+        createChildNodeValidator<MarkdownLinkUrlNode>(),
+      ),
     );
 
-    const removeLabelTransform = editor.registerNodeTransform(
-      MarkdownLinkLabelNode,
-      createChildNodeValidator<MarkdownLinkLabelNode>(),
+    cleanups.push(
+      editor.registerNodeTransform(
+        MarkdownLinkLabelNode,
+        createChildNodeValidator<MarkdownLinkLabelNode>(),
+      ),
     );
 
-    const removeTransform = editor.registerNodeTransform(
-      MarkdownLinkNode,
-      (node) => {
+    cleanups.push(
+      editor.registerNodeTransform(MarkdownLinkNode, (node) => {
         if (!FULL_MATCH_REGEX.test(node.getTextContent())) {
           $unwrapMarkdownLinkNode(node);
         }
-      },
+      }),
     );
 
-    return () => {
-      removeTextTransform();
-      removeUrlTransform();
-      removeLabelTransform();
-      removeTransform();
-    };
+    return () => cleanups.forEach((fn) => { fn(); });
   }, [editor]);
 }
 
