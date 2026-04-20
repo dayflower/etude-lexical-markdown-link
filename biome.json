@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": ["docs/"]
+    "includes": ["**", "!!docs"]
   },
   "formatter": {
     "enabled": true,
