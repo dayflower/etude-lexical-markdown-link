@@ -1,8 +1,15 @@
 {
   "name": "etude-lexical-markdown-link",
+  "description": "Etude for Lexical rich text editor with markdown link support",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dayflower/etude-lexical-markdown-link.git"
+  },
+  "author": "dayflower (https://github.com/dayflower)",
+  "license": "MIT",
   "scripts": {
     "dev": "vite --no-clear-screen",
     "build": "tsc -b && vite build",
