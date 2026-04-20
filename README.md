@@ -1,73 +1,48 @@
-# React + TypeScript + Vite
+# etude-lexical-markdown-link
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A personal study project implementing Markdown-style link (`[label](url)`) editing logic in [Lexical](https://lexical.dev/).
 
-Currently, two official plugins are available:
+## About
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+This is an etude — a hands-on exercise for learning, not a production tool. Building anything non-trivial with Lexical turns out to be surprisingly involved, so this project exists as a record of that exploration.
 
-## React Compiler
+The editor behavior is loosely inspired by Obsidian's editor, but is not identical to it. The logic was written independently from scratch.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Features
 
-## Expanding the ESLint configuration
+The UI is a dual-panel layout: a rich editor on the left and a live Markdown source preview on the right.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Link mode (default — cursor is outside the link)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Raw markdown syntax is hidden; only the label is rendered as a blue underlined link with an external-link icon
+- Clicking the link moves the cursor inside → switches to source mode
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Source mode (cursor is inside the link)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- The full `[label](url)` syntax is revealed and editable
+- Clicking the URL portion opens it in a new tab
+- Pressing **Escape** moves the cursor outside → returns to link mode
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Auto-conversion
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- Typing `[label](url)` anywhere in the editor automatically wraps it into a link node
+- Editing the syntax back into something that no longer matches (e.g., deleting a bracket) automatically unwraps it to plain text
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Show Brackets toggle
+
+An optional display mode that renders faint `[` `]` around the label even in link mode, hinting at the underlying Markdown structure.
+
+## Implementation Notes
+
+- **Custom Lexical nodes** — `MarkdownLinkNode` (`ElementNode`) wraps `MarkdownLinkLabelNode` and `MarkdownLinkUrlNode`, both `TextNode` subclasses generated via a factory to avoid duplication.
+- **`MarkdownLinkPlugin`** is composed of five focused hooks:
+  - `useNodeTransforms` — regex-based detection; wraps matching text into link nodes and unwraps broken ones
+  - `useSelectionFocusTracking` — adds/removes an `.is-focused` CSS class on the enclosing link node
+  - `useTextInsertionBehavior` — redirects new text typed immediately after a link to the next sibling, protecting the link structure
+  - `useEscapeKeyBehavior` — moves the cursor outside the link on Escape
+  - `useClickHandling` — dual-mode click (enter link vs. open URL)
+- **CSS-driven visual modes** — the entire link-mode / source-mode visual difference is handled in CSS via the `.is-focused` class; no JavaScript re-render is needed for the toggle.
+
+## License
+
+[MIT](LICENSE)
