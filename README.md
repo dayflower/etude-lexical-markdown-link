@@ -4,6 +4,8 @@ A personal study project implementing Markdown-style link (`[label](url)`) editi
 
 <img src="notes/screenshot.png" width="800">
 
+Live demo: https://dayflower.github.io/etude-lexical-markdown-link/
+
 ## About
 
 This is an etude — a hands-on exercise for learning, not a production tool. Building anything non-trivial with Lexical turns out to be surprisingly involved, so this project exists as a record of that exploration.
