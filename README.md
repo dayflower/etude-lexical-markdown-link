@@ -2,7 +2,7 @@
 
 A personal study project implementing Markdown-style link (`[label](url)`) editing logic in [Lexical](https://lexical.dev/).
 
-![Screenshot](notes/screenshot.png)
+<img src="notes/screenshot.png" width="800">
 
 ## About
 
