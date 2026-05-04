@@ -1,3 +1,4 @@
+import { $generateNodesFromDOM } from "@lexical/html";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
   $createTextNode,
@@ -11,6 +12,7 @@ import {
   KEY_ESCAPE_COMMAND,
   type LexicalEditor,
   type LexicalNode,
+  PASTE_COMMAND,
   TextNode,
 } from "lexical";
 import { useEffect } from "react";
@@ -326,6 +328,53 @@ function useClickHandling(editor: LexicalEditor): void {
   }, [editor]);
 }
 
+function $convertAnchorsToMarkdownText(doc: Document): boolean {
+  const anchors = doc.querySelectorAll("a[href]");
+  if (anchors.length === 0) return false;
+  anchors.forEach((a) => {
+    const href = a.getAttribute("href") ?? "";
+    const label = a.textContent ?? "";
+    const replacement = href
+      ? `[${label.length > 0 ? label : href}](${href})`
+      : label;
+    a.replaceWith(doc.createTextNode(replacement));
+  });
+  return true;
+}
+
+function usePastedLinkConversion(editor: LexicalEditor): void {
+  useEffect(() => {
+    const removePasteListener = editor.registerCommand(
+      PASTE_COMMAND,
+      (event) => {
+        if (!(event instanceof ClipboardEvent)) return false;
+        const clipboardData = event.clipboardData;
+        if (!clipboardData) return false;
+
+        const html = clipboardData.getData("text/html");
+        if (!html) return false;
+
+        const doc = new DOMParser().parseFromString(html, "text/html");
+        if (!$convertAnchorsToMarkdownText(doc)) return false;
+
+        event.preventDefault();
+        editor.update(() => {
+          const selection = $getSelection();
+          if (!$isRangeSelection(selection)) return;
+          const nodes = $generateNodesFromDOM(editor, doc);
+          selection.insertNodes(nodes);
+        });
+        return true;
+      },
+      COMMAND_PRIORITY_HIGH,
+    );
+
+    return () => {
+      removePasteListener();
+    };
+  }, [editor]);
+}
+
 export default function MarkdownLinkPlugin() {
   const [editor] = useLexicalComposerContext();
   useNodeTransforms(editor);
@@ -333,5 +382,6 @@ export default function MarkdownLinkPlugin() {
   useTextInsertionBehavior(editor);
   useEscapeKeyBehavior(editor);
   useClickHandling(editor);
+  usePastedLinkConversion(editor);
   return null;
 }
