@@ -1,4 +1,5 @@
 import {
+  type DOMExportOutput,
   type EditorConfig,
   ElementNode,
   type LexicalNode,
@@ -49,6 +50,17 @@ export class MarkdownLinkNode extends ElementNode {
       dom.setAttribute("data-label", this.__label);
     }
     return false;
+  }
+
+  // Emit a semantic anchor for HTML export (`$generateHtmlFromNodes`, also used
+  // when copying to the clipboard). The editing children are the literal
+  // Markdown syntax (`[`, label, `](`, url, `)`), so skip them via
+  // `$getChildNodes` and build `<a>` from the stored url/label instead.
+  exportDOM(): DOMExportOutput {
+    const element = document.createElement("a");
+    element.setAttribute("href", this.__url);
+    element.textContent = this.__label;
+    return { element, $getChildNodes: () => [] };
   }
 
   static importJSON(
