@@ -10,6 +10,7 @@ import {
   TextNode,
 } from "lexical";
 import { CSS_CLASSES } from "./constants";
+import { unescapeMarkdown } from "./markdownLinkEscape";
 
 export type SerializedMarkdownLinkNode = Spread<
   { url: string; label: string },
@@ -37,14 +38,14 @@ export class MarkdownLinkNode extends ElementNode {
   createDOM(_config: EditorConfig): HTMLElement {
     const dom = document.createElement("span");
     dom.className = CSS_CLASSES.LINK;
-    dom.setAttribute("data-url", this.__url);
+    dom.setAttribute("data-url", unescapeMarkdown(this.__url));
     dom.setAttribute("data-label", this.__label);
     return dom;
   }
 
   updateDOM(prevNode: MarkdownLinkNode, dom: HTMLElement): boolean {
     if (prevNode.__url !== this.__url) {
-      dom.setAttribute("data-url", this.__url);
+      dom.setAttribute("data-url", unescapeMarkdown(this.__url));
     }
     if (prevNode.__label !== this.__label) {
       dom.setAttribute("data-label", this.__label);
@@ -58,8 +59,8 @@ export class MarkdownLinkNode extends ElementNode {
   // `$getChildNodes` and build `<a>` from the stored url/label instead.
   exportDOM(): DOMExportOutput {
     const element = document.createElement("a");
-    element.setAttribute("href", this.__url);
-    element.textContent = this.__label;
+    element.setAttribute("href", unescapeMarkdown(this.__url));
+    element.textContent = unescapeMarkdown(this.__label);
     return { element, $getChildNodes: () => [] };
   }
 
@@ -114,7 +115,18 @@ function createMarkdownLinkTextNodeClass(typeString: string, cssClass: string) {
     createDOM(config: EditorConfig): HTMLElement {
       const dom = super.createDOM(config);
       dom.classList.add(cssClass);
+      // Expose the decoded text so the unfocused (link) rendering can show it
+      // without backslash escapes via CSS, while the editable text stays raw.
+      dom.setAttribute("data-display", unescapeMarkdown(this.__text));
       return dom;
+    }
+
+    updateDOM(prevNode: this, dom: HTMLElement, config: EditorConfig): boolean {
+      const updated = super.updateDOM(prevNode, dom, config);
+      if (prevNode.__text !== this.__text) {
+        dom.setAttribute("data-display", unescapeMarkdown(this.__text));
+      }
+      return updated;
     }
 
     static importJSON(
