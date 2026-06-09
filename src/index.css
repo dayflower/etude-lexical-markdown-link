@@ -17,8 +17,15 @@
   line-height: 0;
 }
 
-/* Show only the label node */
+/* Hide the raw (escaped) label text; render the decoded label instead */
 .markdown-link:not(.is-focused) .markdown-link-label {
+  font-size: 0;
+  line-height: 0;
+}
+
+/* Show the decoded label (escape characters removed) */
+.markdown-link:not(.is-focused) .markdown-link-label::before {
+  content: attr(data-display);
   color: #2563eb;
   cursor: pointer;
   font-size: 1rem;
@@ -58,17 +65,21 @@
   opacity: 0.5;
 }
 
-/* Bracket mode: add [ ] with smaller, lighter styling */
-.show-brackets .markdown-link:not(.is-focused) .markdown-link-label::before {
-  content: "[";
-  font-size: 0.8em;
+/* Bracket mode: add [ ] with smaller, lighter styling. The opening bracket is
+   rendered on the link wrapper and the closing one after the label, because the
+   label's ::before now carries the decoded label text. */
+.show-brackets .markdown-link:not(.is-focused)::before,
+.show-brackets .markdown-link:not(.is-focused) .markdown-link-label::after {
+  font-size: 0.8rem;
+  line-height: 1.5;
   opacity: 0.5;
   text-decoration: none;
 }
 
+.show-brackets .markdown-link:not(.is-focused)::before {
+  content: "[";
+}
+
 .show-brackets .markdown-link:not(.is-focused) .markdown-link-label::after {
   content: "]";
-  font-size: 0.8em;
-  opacity: 0.5;
-  text-decoration: none;
 }
